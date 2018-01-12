@@ -2,18 +2,19 @@
 __author__ = 'FlyBear'
 __date__ = '2018-01-01'
 
-from ModifyJob import *
+from MainWindow import *
 
 
-class VerifyIntegrity(Toplevel):
+class VerifyIntegrity(Toplevel, ClearFiles):
     def __init__(self):
         self.verify = None
         self.text_label = StringVar()
         self.tree_view_list = None
-        self.file_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                      os.path.pardir)) + '\\JobConf\\'
-        self.script_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                        os.path.pardir)) + '\\Script\\'
+
+        self.root_node = None
+        self.tree = None
+        self.job = None
+
         self.init_ui()
         self.verify.focus_force()
 
@@ -26,29 +27,60 @@ class VerifyIntegrity(Toplevel):
         label_title = Label(self.verify, textvariable=self.text_label)
         label_title.grid(row=0, column=0, sticky=W)
 
-        self.listbox_job = Listbox(self.verify)
-        self.listbox_job.bind('<Double-Button-1>', self.edit)
-        scrollbar_listbox = Scrollbar(self.verify)
-        self.listbox_job.configure(width=50, height=20)
-        self.listbox_job.grid(row=1, column=0, columnspan=3)
-        scrollbar_listbox.grid(row=1, column=5, sticky=N + S)
-        self.listbox_job.configure(yscrollcommand=scrollbar_listbox)
+        self.tree_frame = Frame(self.verify)
+        self.tree_frame.configure(width=500)
+        self.tree_frame.grid(row=1, column=0, columnspan=3, sticky=N + S + W + E)
 
+        self.tree = ttk.Treeview(self.tree_frame, column=('JOB', '任务', '完整性'), show="headings")
+        self.tree.column('JOB', width=100, anchor='center')
+        self.tree.column('任务', width=150, anchor='center')
+        self.tree.column('完整性', width=150, anchor='center')
+        self.tree.configure(height=15)
+        self.tree.heading('#0', text=u'任务清单', anchor='w')
+        self.tree.heading('JOB', text='JOB')
+        self.tree.heading('任务', text='任务')
+        self.tree.heading('完整性', text='完整性')
+        ysb = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.tree.yview)
+        xsb = ttk.Scrollbar(self.tree_frame, orient='horizontal', command=self.tree.xview)
+        root_node = self.tree.insert('', 'end', text='JOB_TASK', open=True)
+
+        self.tree.grid(row=0, column=0, rowspan=9, sticky=N + S + W + E)
+        ysb.grid(row=0, column=4, rowspan=11, sticky=N + S)
+        xsb.grid(row=12, column=0, rowspan=11, sticky=W + E)
         button_test = Button(self.verify, text='执行检测', command=self.verify_job)
-        button_test.grid(row=2, column=0, padx=60)
+        button_test.grid(row=1, column=5, ipadx=20, padx=60, sticky='n')
 
         button_cancel = Button(self.verify, text='返 回', command=self.job_cancel)
-        button_cancel.grid(row=2, column=1, padx=50, ipadx=20)
+        button_cancel.grid(row=1, column=5, ipadx=30, pady=50, sticky='n')
+        self.bind_error_tree()
 
     def job_cancel(self):
         self.verify.destroy()
 
     def verify_job(self):
-        # job_list = []
-        for item in os.listdir(self.file_path):
-            if not os.path.exists(self.script_path + item.decode('gbk')[:-4] + '.bat'):
-                self.listbox_job.insert(END, item.decode('gbk')[:-4] + '_损坏')
-                self.text_label.set('缺失脚本的任务 可双击编辑该任务')
+        items = self.tree.get_children()
+        [self.tree.delete(item) for item in items]
+        self.bind_error_tree()
+
+    def bind_error_tree(self):
+        '''
+        搜索任务配置目录中脚本文件丢失的JOB，绑定到JOB listview
+        :return:
+        '''
+        try:
+            job = []
+            for job_dir in os.listdir(job_root_path):
+                job.append(job_dir)
+            for parent in job:
+                job_list = os.listdir(os.path.join(job_root_path, parent + '/JobConf'))
+                for job_name in job_list:
+                    job_name = job_name[:-4]
+                    script_file = get_script_path(parent, job_name)
+
+                    if not os.path.exists(script_file):
+                        self.tree.insert('', 0, values=(parent.decode('gbk'), job_name.decode('gbk'), '脚本文件缺失'))
+        except Exception, e:
+            print e.message
 
     def edit(self, event):
         edit_job_name = self.listbox_job.get(self.listbox_job.curselection())
