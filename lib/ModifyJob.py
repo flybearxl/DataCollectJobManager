@@ -5,6 +5,7 @@ __date__ = '2018-01-01'
 from Tkinter import *
 from ScrolledText import ScrolledText
 from ManageJob import *
+from ttk import Combobox
 
 rn = '\r\n'
 
@@ -34,8 +35,8 @@ class JobUI(Toplevel):  # 编辑任务窗口
         top_frame = Frame(self.edit_job)
         top_frame.configure(borderwidth=2, bg='gray')
         Label(top_frame, text="JOB", bg='gray').grid(row=0, column=1, sticky=W)
-        self.entry_Job_name = Entry(top_frame, textvariable=self.txt_text_job)
-        self.entry_Job_name.grid(row=0, column=2, ipadx=30, sticky=W)
+        self.combobox_Job_name = Combobox(top_frame, width=12, textvariable=self.txt_text_job,state='readonly')
+        self.combobox_Job_name.grid(row=0, column=2, ipadx=30, sticky=W)
         Label(top_frame, text="任务名称", bg='gray').grid(row=1, column=1, sticky=W)
         self.entry_text_name = Entry(top_frame, textvariable=self.txt_text_task)
         self.entry_text_name.grid(row=1, column=2, ipadx=30, sticky=W)
@@ -70,7 +71,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
         bottom_frame.configure(height=30, borderwidth=2)
         bottom_frame.pack_propagate(0)
         button_ok = Button(bottom_frame, text="保 存",
-                           command=lambda: self.check_entry_is_empty(parent, self.entry_text_name.get()))
+                           command=self.check_entry_is_empty)
         button_ok.pack(side=LEFT, padx=150, ipadx=10)
 
         button_cancel = Button(bottom_frame, text="取 消", command=self.job_cancel)
@@ -89,10 +90,12 @@ class JobUI(Toplevel):  # 编辑任务窗口
         :return:
         '''
         if job == 0:
-            pass
+            value_combobox = scan_all_job()
+            tuple(value_combobox)
+            self.combobox_Job_name['values'] = value_combobox
         elif job == 1:
             self.txt_text_job.set(job_name)
-            self.entry_Job_name.configure(state='disabled')
+            self.combobox_Job_name.configure(state='disabled')
         elif job == 2:
             file_path = get_conf_path(parent, job_name)
             script_path = get_script_path(parent, job_name)
@@ -103,9 +106,9 @@ class JobUI(Toplevel):  # 编辑任务窗口
                 tkMessageBox.showwarning(title='警告', message=e.message)
                 self.edit_job.destroy()
             self.set_text_value(parent)
-            self.entry_Job_name.configure(state='disabled')
+            self.combobox_Job_name.configure(state='disabled')
 
-    def check_entry_is_empty(self, parent, job_name):
+    def check_entry_is_empty(self):
         '''
         保存任务，检查是否输入了任务名称，有就调用save_job_conf_file保存配置文件
         没有任务名称则不保存
@@ -114,44 +117,44 @@ class JobUI(Toplevel):  # 编辑任务窗口
         :return:
         '''
         try:
-            if job_name:
+            parent = self.combobox_Job_name.get()
+            job_name = self.entry_text_name.get()
+            if self.combobox_Job_name.get() and self.entry_text_name.get():
                 job_file = get_conf_path(parent, job_name)
                 job_script = get_script_path(parent, job_name)
                 if check_job_file_exists(job_file):
                     self.save_job_conf_file(job_file, job_script)
+                self.edit_job.focus_force()
             else:
-
                 tkMessageBox.showerror('Error', 'JOB和任务名称不能为空')
                 self.edit_job.focus_force()
         except Exception, e:
             tkMessageBox.showerror('Error', e.message)
+            self.edit_job.focus_force()
 
     def save_job_conf_file(self, job_file, job_script):  # 保存任务配置文件
         try:
             rn = '\r\n'
             # print '即将写入脚本配置文件：', job_file
             # print '即将写入脚本文件：', job_script
-            if self.entry_Job_name.get() and self.entry_text_name.get():
-                job_conf_file = open(job_file, 'w')
-                job_conf_file.writelines(u'任务名称:  ' + (self.entry_text_name.get() if self.entry_Job_name.get() else ''))
-                job_conf_file.writelines(
-                    rn + u'任务描述:  ' + (self.entry_text_desc.get() if self.entry_text_desc.get() else ''))
-                job_conf_file.writelines(
-                    rn + u'服务器地址:  ' + (self.entry_text_server.get() if self.entry_text_server else ''))
-                job_conf_file.writelines(rn + u'用户名:  ' + (self.entry_text_user.get() if self.entry_text_user else ''))
-                job_conf_file.writelines(
-                    rn + u'密码:  ' + (self.entry_text_pwd.get() if self.entry_text_pwd.get() else ''))
-                job_conf_file.writelines(
-                    rn + u'表空间:  ' + (self.entry_text_tablespace.get() if self.entry_text_tablespace.get() else ''))
-                job_conf_file.writelines(rn + u'脚本路径:  ' + job_script[job_script.find('Script'):])
-                job_conf_file.close()
-                script_file = open(job_script, 'w')
-                script_content = self.entry_text_script.get(0.0, END)
-                script_content.rstrip()
-                script_file.writelines(script_content)
-                script_file.close()
-            else:
-                print 'JOB和任务名称不能为空'
+            job_conf_file = open(job_file, 'w')
+            job_conf_file.writelines(u'任务名称:  ' + (self.entry_text_name.get() if self.combobox_Job_name.get() else ''))
+            job_conf_file.writelines(
+                rn + u'任务描述:  ' + (self.entry_text_desc.get() if self.entry_text_desc.get() else ''))
+            job_conf_file.writelines(
+                rn + u'服务器地址:  ' + (self.entry_text_server.get() if self.entry_text_server else ''))
+            job_conf_file.writelines(rn + u'用户名:  ' + (self.entry_text_user.get() if self.entry_text_user else ''))
+            job_conf_file.writelines(
+                rn + u'密码:  ' + (self.entry_text_pwd.get() if self.entry_text_pwd.get() else ''))
+            job_conf_file.writelines(
+                rn + u'表空间:  ' + (self.entry_text_tablespace.get() if self.entry_text_tablespace.get() else ''))
+            job_conf_file.writelines(rn + u'脚本路径:  ' + job_script[job_script.find('Script'):])
+            job_conf_file.close()
+            script_file = open(job_script, 'w')
+            script_content = self.entry_text_script.get(0.0, END)
+            script_content.rstrip()
+            script_file.writelines(script_content)
+            script_file.close()
             self.edit_job.destroy()
         except Exception, e:
             return e.message
