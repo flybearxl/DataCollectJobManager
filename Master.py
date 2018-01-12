@@ -1,6 +1,6 @@
 # --coding:utf-8--
 
-from lib.UI import *
+from lib.MainWindow import *
 import sys
 
 reload(sys)

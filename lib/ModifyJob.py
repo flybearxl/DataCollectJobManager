@@ -35,7 +35,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
         top_frame = Frame(self.edit_job)
         top_frame.configure(borderwidth=2, bg='gray')
         Label(top_frame, text="JOB", bg='gray').grid(row=0, column=1, sticky=W)
-        self.combobox_Job_name = Combobox(top_frame, width=12, textvariable=self.txt_text_job,state='readonly')
+        self.combobox_Job_name = Combobox(top_frame, width=12, textvariable=self.txt_text_job, state='readonly')
         self.combobox_Job_name.grid(row=0, column=2, ipadx=30, sticky=W)
         Label(top_frame, text="任务名称", bg='gray').grid(row=1, column=1, sticky=W)
         self.entry_text_name = Entry(top_frame, textvariable=self.txt_text_task)
@@ -84,7 +84,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
     def init_ui(self, job, parent, job_name):
         '''
         根据传入的参数，决定窗口的初始状态
-        :param job: 0-新建菜单点击创建 1-JOB树右键新建JOB菜单 2-双击JOB
+        :param job: 0-新建菜单点击创建 1-JOB树右键新建JOB菜单 2-双击JOB 3--菜单打开JOB菜单调用
         :param parent: 父节点
         :param job_name: 节点名称_job_name
         :return:
@@ -100,13 +100,21 @@ class JobUI(Toplevel):  # 编辑任务窗口
             file_path = get_conf_path(parent, job_name)
             script_path = get_script_path(parent, job_name)
             try:
-                self.job_conf_content = open(file_path).readlines()  # 读取配置文件内容填充列表
+                self.job_conf_content = open(file_path).readlines()
                 self.job_script_content = open(script_path).read()
             except Exception, e:
                 tkMessageBox.showwarning(title='警告', message=e.message)
                 self.edit_job.destroy()
             self.set_text_value(parent)
             self.combobox_Job_name.configure(state='disabled')
+        elif job == 3:
+            parent = job_name[job_name.find('Job') + 4:job_name.find('/JobConf')]
+            job_name = os.path.split(job_name)[1][:-4]
+            file_path = get_conf_path(parent, job_name)
+            script_path = get_script_path(parent, job_name)
+            self.job_conf_content = open(file_path).readlines()
+            self.job_script_content = open(script_path).read()
+            self.set_text_value(parent)
 
     def check_entry_is_empty(self):
         '''

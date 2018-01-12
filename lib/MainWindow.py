@@ -25,8 +25,6 @@ class Application(Frame):  # 主窗口
 
         self.tree = None
         self.job = []  # 存放JOB名称,用来检测选中的是否是叶节点
-        self.root_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), os.path.pardir)) + '\Job'
         self.item = None  # 存放当前选择的任务节点
         self.parent = None  # 当前选择任务的父节点名字——-JOB名字
         self.job_name = None  # 任务名称
@@ -144,12 +142,12 @@ class Application(Frame):  # 主窗口
         try:
             job_list = {}
             self.job = []
-            for job in os.listdir(self.root_path):
+            for job in os.listdir(job_root_path):
                 # 构建路径
                 self.job.append(job.decode('gbk'))
                 job_list[job] = self.tree.insert(root_node, 'end', text=job.decode('gbk'), open=False)
             for task in job_list:
-                conf_path = os.path.join(self.root_path, task.decode('gbk') + "\\JobConf".decode('gbk'))
+                conf_path = os.path.join(job_root_path, task.decode('gbk') + "\\JobConf".decode('gbk'))
                 job_file_list = os.listdir(conf_path)
                 for item in job_file_list:
                     self.tree.insert(job_list[task], 'end', text=item.decode('gbk')[:-4], open=False)
@@ -183,21 +181,19 @@ class Application(Frame):  # 主窗口
     #     # for item in self.job:
     #     #     print item
 
-    @staticmethod
-    def open_job():
+    def open_job(self):
         '''
         菜单打开JOB处理
         :return:
         '''
         try:
-            file_name = tkFileDialog.askopenfilename()
-            job_name = os.path.splitext(os.path.split(file_name)[1])[0]
-            if job_name:
-                JobUI(job_name)
+            file_name = tkFileDialog.askopenfilename(initialdir=job_root_path, parent=self.master, title='打开JOB配置文件')
+            if file_name:
+                JobUI(3, 0, file_name)
             else:
                 return
-        except Exception as e:
-            tkMessageBox._show('警告', '请先选择任务')
+        except Exception, e:
+            tkMessageBox.showinfo(title='警告', message='请先选择任务')
 
     def new_job(self, choice):
         '''
