@@ -122,7 +122,8 @@ def get_conf_path(parent, job_name):
     :param job_name:
     :return:
     '''
-    job_conf_path = job_root_path + '\\' + parent + '\\JObConf\\' + job_name + job_conf_ext
+    # job_conf_path = os.path.join(job_root_path, parent)
+    job_conf_path = job_root_path + '\\' + parent + '\\JObConf\\' + str(job_name) + job_conf_ext
     return job_conf_path
 
 
@@ -133,7 +134,7 @@ def get_script_path(parent, job_name):
     :param job_name:
     :return:
     '''
-    job_script_path = job_root_path + '\\' + parent + '\\Script\\' + job_name + job_script_ext
+    job_script_path = job_root_path + '\\' + parent + '\\Script\\' + str(job_name) + job_script_ext
     return job_script_path
 
 
@@ -190,4 +191,15 @@ def scan_all_deleted_job(root_path):
             scan_all_deleted_job(file_path)
         else:
             file_list.append(file_path)
+    return file_list
+
+
+def scan_all_job():
+    '''
+    遍历所有被删除的文件，包含任务配置文件和脚本文件，以及该目录下的所有其它文件
+    :param :
+    :return:
+    '''
+    for file_path in os.listdir(job_root_path):
+        file_list.append(file_path.decode('gbk'))
     return file_list

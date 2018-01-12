@@ -15,6 +15,7 @@ class VerifyIntegrity(Toplevel):
         self.script_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         os.path.pardir)) + '\\Script\\'
         self.init_ui()
+        self.verify.focus_force()
 
     def init_ui(self):
         self.verify = Toplevel()
