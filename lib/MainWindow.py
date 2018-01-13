@@ -76,10 +76,10 @@ class Application(Frame):  # 主窗口
         frame_top_left.pack_propagate(0)
         self.tree = ttk.Treeview(frame_top_left)
         self.tree.configure(height=30)
-        self.tree.heading('#0', text=u'任务清单', anchor='w')
+        self.tree.heading('#0', text='JOB导航', anchor='w')
         ysb = ttk.Scrollbar(frame_top_left, orient='vertical', command=self.tree.yview)
         xsb = ttk.Scrollbar(frame_top_left, orient='horizontal', command=self.tree.xview)
-        self.root_node = self.tree.insert('', 'end', text='JOB_TASK', open=True)
+        self.root_node = self.tree.insert('', 'end', text='任务清单', open=True)
 
         self.tree.grid(row=0, column=0, sticky=N + S)
         self.tree.bind("<Double-1>", self.edit_job)
@@ -187,7 +187,8 @@ class Application(Frame):  # 主窗口
         :return:
         '''
         try:
-            file_name = tkFileDialog.askopenfilename(initialdir=job_root_path, parent=self.master, title='打开JOB配置文件')
+            file_name = tkFileDialog.askopenfilename(initialdir=job_root_path, parent=self.master, title='打开JOB配置文件',
+                                                     defaultextension='.dat')
             if file_name:
                 JobUI(3, 0, file_name)
             else:

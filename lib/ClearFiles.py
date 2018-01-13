@@ -32,10 +32,10 @@ class ClearFiles(Toplevel):
         self.tree_frame.grid(row=1, column=0, columnspan=3, sticky=N + S + W + E)
         self.tree = ttk.Treeview(self.tree_frame)
         self.tree.configure(height=15)
-        self.tree.heading('#0', text=u'任务清单', anchor='w')
+        self.tree.heading('#0', text='JOB导航', anchor='w')
         ysb = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.tree.yview)
         xsb = ttk.Scrollbar(self.tree_frame, orient='horizontal', command=self.tree.xview)
-        root_node = self.tree.insert('', 'end', text='JOB_TASK', open=True)
+        root_node = self.tree.insert('', 'end', text='任务列表', open=True)
 
         self.tree.grid(row=0, column=0, rowspan=9, sticky=N + S + W + E)
         self.tree.bind("<Button-3>", self.open_restore_job_menu)

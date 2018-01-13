@@ -3,6 +3,7 @@ __author__ = 'FlyBear'
 __date__ = '2018-01-01'
 
 from MainWindow import *
+from ModifyJob import *
 
 
 class VerifyIntegrity(Toplevel, ClearFiles):
@@ -10,11 +11,9 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         self.verify = None
         self.text_label = StringVar()
         self.tree_view_list = None
-
         self.root_node = None
         self.tree = None
         self.job = None
-
         self.init_ui()
         self.verify.focus_force()
 
@@ -40,9 +39,9 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         self.tree.heading('JOB', text='JOB')
         self.tree.heading('任务', text='任务')
         self.tree.heading('完整性', text='完整性')
+        self.tree.bind("<Double-1>", self.edit_job)
         ysb = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.tree.yview)
         xsb = ttk.Scrollbar(self.tree_frame, orient='horizontal', command=self.tree.xview)
-        root_node = self.tree.insert('', 'end', text='JOB_TASK', open=True)
 
         self.tree.grid(row=0, column=0, rowspan=9, sticky=N + S + W + E)
         ysb.grid(row=0, column=4, rowspan=11, sticky=N + S)
@@ -50,7 +49,7 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         button_test = Button(self.verify, text='执行检测', command=self.verify_job)
         button_test.grid(row=1, column=5, ipadx=20, padx=60, sticky='n')
 
-        button_cancel = Button(self.verify, text='返 回', command=self.job_cancel)
+        button_cancel = Button(self.verify, text='返回系统', command=self.job_cancel)
         button_cancel.grid(row=1, column=5, ipadx=30, pady=50, sticky='n')
         self.bind_error_tree()
 
@@ -58,9 +57,10 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         self.verify.destroy()
 
     def verify_job(self):
-        items = self.tree.get_children()
-        [self.tree.delete(item) for item in items]
-        self.bind_error_tree()
+        try:
+            self.bind_error_tree()
+        except Exception, e:
+            tkMessageBox.showinfo(title='警告', message=e.message)
 
     def bind_error_tree(self):
         '''
@@ -68,6 +68,8 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         :return:
         '''
         try:
+            items = self.tree.get_children()
+            [self.tree.delete(item) for item in items]
             job = []
             for job_dir in os.listdir(job_root_path):
                 job.append(job_dir)
@@ -82,9 +84,14 @@ class VerifyIntegrity(Toplevel, ClearFiles):
         except Exception, e:
             print e.message
 
-    def edit(self, event):
-        edit_job_name = self.listbox_job.get(self.listbox_job.curselection())
-        if edit_job_name:
-            JobUI(edit_job_name)
-        else:
-            pass
+    def edit_job(self, event):
+        try:
+            item = self.tree.selection()[0]
+            parent = self.tree.item(item, "values")[0].decode('gbk')
+            job_name = self.tree.item(item, "values")[1].decode('gbk')
+            JobUI(4, parent, job_name)
+        except Exception, e:
+            tkMessageBox.showinfo(title='警告', message=e.message)
+
+    def test_print(self):
+        print 'it\'s ok'

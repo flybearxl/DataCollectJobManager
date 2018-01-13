@@ -1,7 +1,7 @@
-任务名称:  财政原始数据库还原
+任务名称:  测试删除
 任务描述:  还原财政原始数据库_ORACLE
 服务器地址:  localhost
 用户名:  system
 密码:  1
 表空间:  user
-脚本路径:  Script\财政原始数据库还原.bat
+脚本路径:  Script\测试删除.bat
