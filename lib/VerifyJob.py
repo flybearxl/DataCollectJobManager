@@ -2,6 +2,7 @@
 __author__ = 'FlyBear'
 __date__ = '2018-01-01'
 
+import ttk
 from ModifyJob import *
 
 
@@ -11,6 +12,7 @@ class VerifyIntegrity(Toplevel):
         self.tree_frame = None
         self.text_label = StringVar()
         self.tree = None
+        self.menu = None
         self.init_ui()
         self.verify.parent = parent_window
         self.verify.focus_force()
@@ -117,18 +119,26 @@ class VerifyIntegrity(Toplevel):
 
     def delete_job(self):
         try:
-            parent, job_name = self.get_parent_job_name()
-            ManageJob.logical_delete_job(parent, job_name)
-            self.bind_error_tree()
+            if self.get_parent_job_name():
+                parent, job_name = self.get_parent_job_name()
+                ManageJob.logical_delete_job(parent, job_name)
+                self.bind_error_tree()
+            else:
+                pass
         except Exception, e:
             tkMessageBox.showinfo(title='警告', message=e.message)
 
     def get_parent_job_name(self):
-        if self.tree.selection():
-            item = self.tree.selection()[0]
-            parent = self.tree.item(item, "values")[0].decode('gbk')
-            job_name = self.tree.item(item, "values")[1].decode('gbk')
-            return parent, job_name
+        try:
+            if self.tree.selection():
+                item = self.tree.selection()[0]
+                parent = self.tree.item(item, "values")[0].decode('gbk')
+                job_name = self.tree.item(item, "values")[1].decode('gbk')
+                return parent, job_name
+            else:
+                pass
+        except Exception, e:
+            tkMessageBox.showinfo(title='警告', message=e.message)
 
     def hide(self):
         """

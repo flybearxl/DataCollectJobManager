@@ -2,6 +2,9 @@
 __author__ = 'FlyBear'
 __date__ = '2018-01-01'
 
+import threading
+import tkFileDialog
+from ClearFiles import *
 from VerifyJob import *
 
 rn = '\r\n'
