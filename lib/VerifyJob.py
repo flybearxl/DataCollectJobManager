@@ -92,6 +92,3 @@ class VerifyIntegrity(Toplevel, ClearFiles):
             JobUI(4, parent, job_name)
         except Exception, e:
             tkMessageBox.showinfo(title='警告', message=e.message)
-
-    def test_print(self):
-        print 'it\'s ok'
