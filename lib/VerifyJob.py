@@ -80,6 +80,9 @@ class VerifyIntegrity(Toplevel):
                         script_file = get_script_path(parent, job_name)
                         if not os.path.exists(script_file):
                             self.tree.insert('', 0, values=(parent.decode('gbk'), job_name.decode('gbk'), '脚本文件缺失'))
+            if not self.tree.get_children():
+                self.tree.insert('', 0, values=('', '恭喜！没有任务配置损坏', ''))
+
         except Exception, e:
             tkMessageBox.showinfo(title='警告', message=e.message)
 
