@@ -2,9 +2,6 @@
 __author__ = 'FlyBear'
 __date__ = '2018-01-01'
 
-import threading
-import tkFileDialog
-from ClearFiles import *
 from VerifyJob import *
 
 rn = '\r\n'
@@ -21,6 +18,7 @@ class Application(Frame):  # 主窗口
         self.master.iconbitmap('ico.ico')
         # self.master.geometry("%dx%d" % (w, h))
         self.scrolled_execute_job_log = None
+        self.scrolled_text_job_conf_info = None
         self.c_menu = None
 
         self.tree = None
@@ -109,10 +107,10 @@ class Application(Frame):  # 主窗口
         frame_top_right_bottom.config(width=860, height=640)
         frame_top_right_bottom.pack_propagate(0)
 
-        self.scorlled_text_job_conf_info = ScrolledText(frame_top_right_bottom, width=101, height=20, font=('微软雅黑', 10),
+        self.scrolled_text_job_conf_info = ScrolledText(frame_top_right_bottom, width=101, height=20, font=('微软雅黑', 10),
                                                         wrap=WORD, state=DISABLED)
-        self.scorlled_text_job_conf_info.grid(sticky='w')
-        self.scorlled_text_job_conf_info.insert(END, '点击左边任务列表，查看任务信息')
+        self.scrolled_text_job_conf_info.grid(sticky='w')
+        self.scrolled_text_job_conf_info.insert(END, '点击左边任务列表，查看任务信息')
 
         self.scrolled_execute_job_log = ScrolledText(frame_top_right_bottom)
         self.scrolled_execute_job_log.configure(font=('微软雅黑', 10), width=101, height=12,
@@ -189,8 +187,9 @@ class Application(Frame):  # 主窗口
         try:
             file_name = tkFileDialog.askopenfilename(initialdir=job_root_path, parent=self.master, title='打开JOB配置文件',
                                                      defaultextension='.dat')
+            job = 3
             if file_name:
-                JobUI(3, 0, file_name)
+                JobUI(self, job, 0, file_name)
             else:
                 return
         except Exception, e:
@@ -202,11 +201,12 @@ class Application(Frame):  # 主窗口
         :return:
         '''
         if choice == 'New':  # 第一个参数0表示新建菜单进入
-            JobUI(0, 0, 0, )
+            JobUI(self, 0, 0, 0, )
         if choice == 'Context':
             parent, job_name = self.get_parent_and_job_name()
             if job_name in self.job:
-                JobUI(1, parent, job_name)  # 第一个参数1表示右键单击JOB树选择新建JOB
+                job = 1
+                JobUI(self, job, parent, job_name)  # 第一个参数1表示右键单击JOB树选择新建JOB
 
     @staticmethod
     def about():
@@ -217,17 +217,16 @@ class Application(Frame):  # 主窗口
         tkMessageBox.showinfo(message='财政数据采集助手 V0.01 作者：FLYBEAR', title='关于')
         pass
 
-    @staticmethod
-    def clear_deleted_jobs():
-        ClearFiles()
+    # @staticmethod
+    def clear_deleted_jobs(self):
+        ClearFiles(self)
 
-    @staticmethod
-    def verify_integrity():
+    def verify_integrity(self):
         '''
         调用验证任务配置完整性窗口
         :return:
         '''
-        VerifyIntegrity()
+        VerifyIntegrity(self)
 
     def edit_job(self, event):
         '''
@@ -237,26 +236,27 @@ class Application(Frame):  # 主窗口
         '''
         parent, job_name = self.get_parent_and_job_name()
         if job_name not in self.job and job_name != '':
-            JobUI(2, parent, job_name)
+            job = 2
+            JobUI(self, job, parent, job_name)
 
     def bind_selected_job_conf_to_scrolled_text(self, event):
         '''
         填充所选任务的内容到任务描述框
         '''
         try:
-            self.scorlled_text_job_conf_info.configure(state=NORMAL)
-            self.scorlled_text_job_conf_info.delete(0.0, END)
+            self.scrolled_text_job_conf_info.configure(state=NORMAL)
+            self.scrolled_text_job_conf_info.delete(0.0, END)
             parent, job_name = self.get_parent_and_job_name()
             file_path, script_path = get_conf_path(parent, job_name), get_script_path(parent, job_name)
             if job_name not in self.job:
                 for item in open(file_path.decode('gbk')):
-                    self.scorlled_text_job_conf_info.insert(END, item.decode('gbk'))
-                self.scorlled_text_job_conf_info.insert(END, rn + '脚本内容：')
+                    self.scrolled_text_job_conf_info.insert(END, item.decode('gbk'))
+                self.scrolled_text_job_conf_info.insert(END, rn + '脚本内容：')
                 script_content = open(script_path.decode('gbk')).read()
-                self.scorlled_text_job_conf_info.insert(END, rn + script_content.decode('gbk'))
-                self.scorlled_text_job_conf_info.see(END)
-                self.scorlled_text_job_conf_info.configure(state=DISABLED)
-                self.scorlled_text_job_conf_info.update()
+                self.scrolled_text_job_conf_info.insert(END, rn + script_content.decode('gbk'))
+                self.scrolled_text_job_conf_info.see(END)
+                self.scrolled_text_job_conf_info.configure(state=DISABLED)
+                self.scrolled_text_job_conf_info.update()
             else:
                 pass
         except Exception, e:
@@ -265,7 +265,7 @@ class Application(Frame):  # 主窗口
                 pass
             else:
                 self.scrolled_execute_job_log.insert(END, rn + e.message)
-                self.scorlled_text_job_conf_info.see(END)
+                self.scrolled_text_job_conf_info.see(END)
             self.scrolled_execute_job_log.configure(state=DISABLED)
 
     def confirm_exec_cmd(self):
@@ -347,3 +347,19 @@ class Application(Frame):  # 主窗口
         job_name = self.tree.item(item, 'text')
         parent = self.tree.item(self.tree.parent(item), 'text')
         return parent, job_name
+
+    def hide(self):
+        """
+        隐藏本窗口
+        :return:
+        """
+        self.master.withdraw()
+
+    def show(self):
+        """
+        重新显示本窗口
+        :return:
+        """
+        self.master.update()
+        self.master.deiconify()
+        self.refresh_tree()

@@ -1,2 +1,1 @@
-dir d:
-pause
+ipconfig /all
