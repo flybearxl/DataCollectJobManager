@@ -14,7 +14,14 @@ class VerifyIntegrity(Toplevel):
         self.text_label = StringVar()
         self.tree = None
         self.menu = None
+
         self.init_ui()
+        self.verify.update_idletasks()
+        self.verify.deiconify()
+        x, y = self.center(600, 520)
+        self.verify.geometry('%dx%d+%d+%d' % (600, 520, x, y))
+        self.verify.deiconify()
+
         self.verify.parent = parent_window
         self.verify.focus_force()
         self.verify.parent.hide()
@@ -181,3 +188,10 @@ class VerifyIntegrity(Toplevel):
         """
         self.verify.destroy()
         self.verify.parent.show()
+
+    def center(self, width, height):
+        screen_w = self.verify.winfo_screenwidth()
+        screen_h = self.verify.winfo_screenheight()
+        x = (screen_w - width) / 2
+        y = (screen_h - height - 50) / 2
+        return x, y

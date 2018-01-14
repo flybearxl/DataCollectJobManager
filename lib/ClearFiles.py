@@ -19,6 +19,12 @@ class ClearFiles(Toplevel):
         self.tree_frame = None
         self.job = []
         self.init_ui()
+
+        self.clear_window.update_idletasks()
+        self.clear_window.deiconify()
+        x, y = self.center(450, 350)
+        self.clear_window.geometry('%dx%d+%d+%d' % (450, 350, x, y))
+        self.clear_window.deiconify()
         self.clear_window.focus_force()
         self.mj = ManageJob()
 
@@ -153,3 +159,10 @@ class ClearFiles(Toplevel):
         """
         self.clear_window.destroy()
         self.parent.show()
+
+    def center(self, width, height):
+        screen_w = self.clear_window.winfo_screenwidth()
+        screen_h = self.clear_window.winfo_screenheight()
+        x = (screen_w - width) / 2
+        y = (screen_h - height - 50) / 2
+        return x, y

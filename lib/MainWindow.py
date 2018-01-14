@@ -15,16 +15,12 @@ class Application(Frame):  # 主窗口
         Frame.__init__(self, master)
         self.master.title(u'财政数据采集还原助手')
         self.master.resizable(width=False, height=False)
-        # w = self.master.winfo_screenwidth()
-        # h = self.master.winfo_screenheight()
-        self.master.geometry("1050x680")
         self.master.iconbitmap('ico.ico')
-        # self.master.geometry("%dx%d" % (w, h))
+        self.hide()
         self.scrolled_execute_job_log = None
         self.scrolled_text_job_conf_info = None
         self.c_menu = None
         self.mj = ManageJob()
-
         self.tree = None
         self.job = []  # 存放JOB名称,用来检测选中的是否是叶节点
         self.item = None  # 存放当前选择的任务节点
@@ -32,12 +28,16 @@ class Application(Frame):  # 主窗口
         self.job_name = None  # 任务名称
         self.root_node = None  # 根节点
 
+        self.init_ui()
+
+        self.master.focus_force()
+        self.bind_job_tree(self.root_node)
+
     def init_ui(self):
         u"""
         初始化界面，完成初始数据绑定
         :return:
         """
-        self.pack()
         menu_bar = Menu(self.master)
 
         # 任务菜单
@@ -134,8 +134,12 @@ class Application(Frame):  # 主窗口
         label_job_status = Label(frame_bottom, text=u"就绪", bd=1, relief=SUNKEN, anchor=W)
         label_job_status.pack(side=BOTTOM, fill=X)
         frame_bottom.pack(side=BOTTOM, fill=X)
-        self.bind_job_tree(self.root_node)
 
+        self.master.update_idletasks()
+        self.master.deiconify()
+        x, y = self.center(1050, 680)
+        self.master.geometry('%dx%d+%d+%d' % (1050, 680, x, y))
+        self.master.deiconify()
 
     def bind_job_tree(self, root_node):
         u"""
@@ -368,3 +372,10 @@ class Application(Frame):  # 主窗口
         self.master.update()
         self.master.deiconify()
         self.refresh_tree()
+
+    def center(self, width, height):
+        screen_w = self.master.winfo_screenwidth()
+        screen_h = self.master.winfo_screenheight()
+        x = (screen_w - width) / 2
+        y = (screen_h - height - 50) / 2
+        return x, y

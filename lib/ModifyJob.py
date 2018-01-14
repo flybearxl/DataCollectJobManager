@@ -79,8 +79,12 @@ class JobUI(Toplevel):  # 编辑任务窗口
         button_cancel = Button(bottom_frame, text=u"取 消", command=self.job_cancel)
         button_cancel.pack(side=LEFT, ipadx=10, )
         bottom_frame.pack(side=BOTTOM, fill=X)
-
+        self.edit_job.update_idletasks()
         self.init_ui(job, parent_name, job_name)
+        self.edit_job.deiconify()
+        x, y = self.center(600, 520)
+        self.edit_job.geometry('%dx%d+%d+%d' % (600, 520, x, y))
+        self.edit_job.deiconify()
         self.edit_job.focus_force()
 
     def init_ui(self, job, parent, job_name):
@@ -198,6 +202,16 @@ class JobUI(Toplevel):  # 编辑任务窗口
         except Exception, e:
             print e.message
 
+    def center(self):
+        pass
+
     def job_cancel(self):
         self.edit_job.destroy()
         self.parent.show()
+
+    def center(self, width, height):
+        screen_w = self.edit_job.winfo_screenwidth()
+        screen_h = self.edit_job.winfo_screenheight()
+        x = (screen_w - width) / 2
+        y = (screen_h - height - 50) / 2
+        return x, y
