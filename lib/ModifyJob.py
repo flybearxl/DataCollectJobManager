@@ -31,7 +31,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
         self.job_script_content = None  # JOB脚本内容
 
         self.edit_job.geometry('600x520')
-        self.edit_job.title('任务编辑')
+        self.edit_job.title(u'任务编辑')
         self.edit_job.iconbitmap('ico.ico')
         self.edit_job.resizable(width=False, height=False)
 
@@ -41,32 +41,30 @@ class JobUI(Toplevel):  # 编辑任务窗口
         Label(top_frame, text="JOB", bg='gray').grid(row=0, column=1, sticky=W)
         self.combobox_Job_name = Combobox(top_frame, width=18, textvariable=self.txt_text_job, state='readonly')
         self.combobox_Job_name.grid(row=0, **entry_opt)
-        Label(top_frame, text="任务名称", bg='gray').grid(row=1, column=1, sticky=W)
+        Label(top_frame, text=u"任务名称", bg='gray').grid(row=1, column=1, sticky=W)
         self.entry_text_name = Entry(top_frame, textvariable=self.txt_text_task)
         self.entry_text_name.grid(row=1, **entry_opt)
 
-        Label(top_frame, text="任务名称不能为空表空，间用户名密码等信息并没有实际意义。仅仅是为了方便在主界面查看代码是否匹配！", bg='gray',
-              wraplength=290, justify='left', fg='red').grid(row=2,
-                                                             column=2,
-                                                             sticky=E,
-                                                             rowspan=3)
-
-        Label(top_frame, text="任务描述", bg='gray').grid(row=2, column=1, sticky=W)
+        tip = Label(top_frame)
+        tip.configure(text=u"任务名称不能为空,表空间用户名密码等信息并没有实际意义。仅仅是为了方便在主界面查看代码是否匹配！")
+        tip.configure(bg='gray', wraplength=290, justify='left', fg='red')
+        tip.grid(row=2, column=2, sticky=E, rowspan=3)
+        Label(top_frame, text=u"任务描述", bg='gray').grid(row=2, column=1, sticky=W)
         self.entry_text_desc = Entry(top_frame, textvariable=self.txt_text_desc)
         self.entry_text_desc.grid(row=2, **entry_opt)
-        Label(top_frame, text="服务器地址", bg='gray').grid(row=3, column=1, sticky=W)
+        Label(top_frame, text=u"服务器地址", bg='gray').grid(row=3, column=1, sticky=W)
         self.entry_text_server = Entry(top_frame, textvariable=self.txt_text_server)
         self.entry_text_server.grid(row=3, **entry_opt)
-        Label(top_frame, text="用户名", bg='gray').grid(row=4, column=1, sticky=W)
+        Label(top_frame, text=u"用户名", bg='gray').grid(row=4, column=1, sticky=W)
         self.entry_text_user = Entry(top_frame, textvariable=self.txt_text_user)
         self.entry_text_user.grid(row=4, **entry_opt)
-        Label(top_frame, text="密码", bg='gray').grid(row=5, column=1, sticky=W)
+        Label(top_frame, text=u"密码", bg='gray').grid(row=5, column=1, sticky=W)
         self.entry_text_pwd = Entry(top_frame, textvariable=self.txt_text_pwd)
         self.entry_text_pwd.grid(row=5, **entry_opt)
-        Label(top_frame, text="表空间", bg='gray').grid(row=6, column=1, sticky=W)
+        Label(top_frame, text=u"表空间", bg='gray').grid(row=6, column=1, sticky=W)
         self.entry_text_tablespace = Entry(top_frame, textvariable=self.txt_text_tablespace)
         self.entry_text_tablespace.grid(row=6, **entry_opt)
-        Label(top_frame, text="脚本", bg='gray').grid(row=7, column=1, sticky=W)
+        Label(top_frame, text=u"脚本", bg='gray').grid(row=7, column=1, sticky=W)
         self.entry_text_script = ScrolledText(top_frame, width=64, height=25)
         self.entry_text_script.grid(row=7, **entry_opt)
         top_frame.pack(side=TOP)
@@ -74,11 +72,11 @@ class JobUI(Toplevel):  # 编辑任务窗口
         bottom_frame = Frame(self.edit_job)
         bottom_frame.configure(height=30, borderwidth=2)
         bottom_frame.pack_propagate(0)
-        button_ok = Button(bottom_frame, text="保 存",
+        button_ok = Button(bottom_frame, text=u"保 存",
                            command=self.check_entry_is_empty)
         button_ok.pack(side=LEFT, padx=150, ipadx=10)
 
-        button_cancel = Button(bottom_frame, text="取 消", command=self.job_cancel)
+        button_cancel = Button(bottom_frame, text=u"取 消", command=self.job_cancel)
         button_cancel.pack(side=LEFT, ipadx=10, )
         bottom_frame.pack(side=BOTTOM, fill=X)
 
@@ -86,15 +84,15 @@ class JobUI(Toplevel):  # 编辑任务窗口
         self.edit_job.focus_force()
 
     def init_ui(self, job, parent, job_name):
-        '''
+        u"""
         根据传入的参数，决定窗口的初始状态
         :param job: 0-新建菜单点击创建 1-JOB树右键新建JOB菜单 2-双击JOB 3--菜单打开JOB菜单调用
         :param parent: 父节点
         :param job_name: 节点名称_job_name
         :return:
-        '''
+        """
         if job == 0:
-            value_combobox = scan_all_job()
+            value_combobox = ManageJob.scan_all_job()
             tuple(value_combobox)
             self.combobox_Job_name['values'] = value_combobox
             self.parent.hide()
@@ -103,28 +101,28 @@ class JobUI(Toplevel):  # 编辑任务窗口
             self.combobox_Job_name.configure(state='disabled')
             self.parent.hide()
         elif job == 2:
-            file_path = get_conf_path(parent, job_name)
-            script_path = get_script_path(parent, job_name)
+            file_path = ManageJob.get_conf_path(parent, job_name)
+            script_path = ManageJob.get_script_path(parent, job_name)
             try:
                 self.job_conf_content = open(file_path).readlines()
                 self.job_script_content = open(script_path).read()
                 self.parent.hide()
             except Exception, e:
-                tkMessageBox.showwarning(title='警告', message=e.message)
+                tkMessageBox.showwarning(title=u'警告', message=e.message)
                 self.edit_job.destroy()
             self.set_text_value(parent)
             self.combobox_Job_name.configure(state='disabled')
         elif job == 3:
             parent = job_name[job_name.find('Job') + 4:job_name.find('/JobConf')]
             job_name = os.path.split(job_name)[1][:-4]
-            file_path = get_conf_path(parent, job_name)
-            script_path = get_script_path(parent, job_name)
+            file_path = ManageJob.get_conf_path(parent, job_name)
+            script_path = ManageJob.get_script_path(parent, job_name)
             self.job_conf_content = open(file_path).readlines()
             self.job_script_content = open(script_path).read()
             self.set_text_value(parent)
             self.parent.hide()
         elif job == 4:
-            file_path = get_conf_path(parent, job_name)
+            file_path = ManageJob.get_conf_path(parent, job_name)
             # self.txt_text_job.set(parent)
             self.combobox_Job_name.configure(state='disabled')
             try:
@@ -133,26 +131,24 @@ class JobUI(Toplevel):  # 编辑任务窗口
                 self.set_text_value(parent)
                 self.parent.hide()
             except Exception, e:
-                tkMessageBox.showwarning(title='警告', message=e.message)
+                tkMessageBox.showwarning(title=u'警告', message=e.message)
 
     def check_entry_is_empty(self):
-        '''
+        u"""
         保存任务，检查是否输入了任务名称，有就调用save_job_conf_file保存配置文件
         没有任务名称则不保存
-        :param job_name:JOB名字
-        :param parent:父节点名称
         :return:
-        '''
+        """
         try:
             parent = self.combobox_Job_name.get()
             job_name = self.entry_text_name.get()
             if self.combobox_Job_name.get() and self.entry_text_name.get():
-                job_file = get_conf_path(parent, job_name)
-                job_script = get_script_path(parent, job_name)
-                if check_job_file_exists(job_file):
+                job_file = ManageJob.get_conf_path(parent, job_name)
+                job_script = ManageJob.get_script_path(parent, job_name)
+                if ManageJob.check_job_file_exists(job_file):
                     self.save_job_conf_file(job_file, job_script)
             else:
-                tkMessageBox.showerror('Error', 'JOB和任务名称不能为空')
+                tkMessageBox.showerror('Error', u'JOB和任务名称不能为空')
                 self.edit_job.focus_force()
         except Exception, e:
             tkMessageBox.showerror('Error', e.message)
@@ -185,11 +181,11 @@ class JobUI(Toplevel):  # 编辑任务窗口
             return e.message
 
     def set_text_value(self, parent):  #
-        '''
+        u"""
         #打开任务绑定输入栏值
         :param parent:
         :return:
-        '''
+        """
         try:
             self.txt_text_job.set(parent)
             self.txt_text_task.set(ManageJob.get_job_text_content(self.job_conf_content[0]).decode('gbk'))

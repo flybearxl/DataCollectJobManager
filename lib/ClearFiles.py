@@ -20,23 +20,24 @@ class ClearFiles(Toplevel):
         self.job = []
         self.init_ui()
         self.clear_window.focus_force()
+        self.mj = ManageJob()
 
     def init_ui(self):
         self.clear_window = Toplevel()
         self.clear_window.protocol("WM_DELETE_WINDOW", self.job_cancel)
         self.clear_window.iconbitmap('ico.ico')
-        self.clear_window.title('数据清理')
+        self.clear_window.title(u'数据清理')
         self.clear_window.resizable(width=False, height=False)
 
-        label = Label(self.clear_window, text='已经删除任务列表')
+        label = Label(self.clear_window, text=u'已经删除任务列表')
         label.grid(row=0, column=0, columnspan=3)
 
-        self.tree = ttk.Treeview(self.clear_window, column=('JOB', '任务'), show="headings")
+        self.tree = ttk.Treeview(self.clear_window, column=('JOB', u'任务'), show="headings")
         self.tree.column('JOB', width=100, anchor='w')
-        self.tree.column('任务', width=200, anchor='w')
+        self.tree.column(u'任务', width=200, anchor='w')
         self.tree.configure(height=15)
         self.tree.heading('JOB', text='JOB')
-        self.tree.heading('任务', text='任务')
+        self.tree.heading(u'任务', text=u'任务')
         self.tree.bind("<Button-3>", self.open_restore_job_menu)
         ysb = ttk.Scrollbar(self.clear_window, orient='vertical', command=self.tree.yview)
         xsb = ttk.Scrollbar(self.clear_window, orient='horizontal', command=self.tree.xview)
@@ -45,36 +46,21 @@ class ClearFiles(Toplevel):
         ysb.grid(row=0, column=1, rowspan=11, sticky=N + S)
         xsb.grid(row=12, column=0, rowspan=11, sticky=W + E)
 
-        # self.tree_frame = Frame(self.clear_window)
-        # self.tree_frame.configure(width=500)
-        # self.tree_frame.grid(row=1, column=0, columnspan=3, sticky=N + S + W + E)
-        # self.tree = ttk.Treeview(self.tree_frame)
-        # self.tree.configure(height=15)
-        # self.tree.heading('#0', text='JOB导航', anchor='w')
-        # ysb = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.tree.yview)
-        # xsb = ttk.Scrollbar(self.tree_frame, orient='horizontal', command=self.tree.xview)
-        # root_node = self.tree.insert('', 'end', text='任务列表', open=True)
-        #
-        # self.tree.grid(row=0, column=0, rowspan=9, sticky=N + S + W + E)
-        # self.tree.bind("<Button-3>", self.open_restore_job_menu)
-        #
-        # ysb.grid(row=0, column=4, rowspan=11, sticky=N + S)
-        # xsb.grid(row=12, column=0, rowspan=11, sticky=W + E)
         self.context_menu = Menu(self.tree)
-        self.context_menu.add_command(label='刷新列表', command=self.bind_tree)
-        self.context_menu.add_command(label='恢复任务', command=self.restore_file)
-        self.context_menu.add_command(label='彻底删除', command=lambda: self.delete_jobs('selected'))
+        self.context_menu.add_command(label=u'刷新列表', command=self.bind_tree)
+        self.context_menu.add_command(label=u'恢复任务', command=self.restore_file)
+        self.context_menu.add_command(label=u'彻底删除', command=lambda: self.delete_jobs('selected'))
 
         button_delete_all = Button(self.clear_window)
-        button_delete_all.configure(text='全部删除', command=lambda: self.delete_jobs('all'))
+        button_delete_all.configure(text=u'全部删除', command=lambda: self.delete_jobs('all'))
         button_delete_all.grid(row=0, column=2, padx=30, sticky='w')
 
         button_delete = Button(self.clear_window)
-        button_delete.configure(text='彻底删除', command=lambda: self.delete_jobs('selected'))
+        button_delete.configure(text=u'彻底删除', command=lambda: self.delete_jobs('selected'))
         button_delete.grid(row=1, column=2, padx=30, sticky='w')
 
         button_cancel = Button(self.clear_window)
-        button_cancel.configure(text='返回系统', command=self.job_cancel)
+        button_cancel.configure(text=u'返回系统', command=self.job_cancel)
         button_cancel.grid(row=2, column=2, padx=30, sticky='w')
         # self.bind_deleted_jobs(root_node)
         self.bind_tree()
@@ -94,57 +80,56 @@ class ClearFiles(Toplevel):
                         job_name = os.path.splitext(job_name)[0]
                         self.tree.insert('', 0, values=(parent.decode('gbk'), job_name.decode('gbk')))
         except Exception, e:
-            tkMessageBox.showinfo(title='警告', message=e.message)
+            tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def delete_jobs(self, content):
-        '''
+        u"""
         彻底删除已经预删除的文件
         :param content: content确认按下的是全部删除按钮还是删除按钮
-        :parm content: 点击的是
         :parm parent: LISTVIEW选择的JOB名
         :parm job_name: LISTVIEW选择的任务名
         :return:
-        '''
-        if self.get_parent_and_job_name():
-            parent, job_name = self.get_parent_and_job_name()
-            try:
-                if content == 'all':
-                    for item in scan_all_deleted_job(self.root_path):
-                        os.remove(item.decode('gbk'))
+        """
+        if content == 'all':
+            for item in self.mj.scan_all_deleted_job(self.root_path):
+                os.remove(item.decode('gbk'))
+            self.bind_tree()
+            self.clear_window.focus_force()
+        else:
+            if self.get_parent_and_job_name():
+                parent, job_name = self.get_parent_and_job_name()
+                try:
+                    self.mj.clear_deleted_jobs(parent, job_name)
+                    self.bind_tree()
+                except Exception, e:
+                    tkMessageBox.showinfo(title=u'提示', message=e.message)
                 else:
-                    ManageJob.clear_deleted_jobs(parent, job_name)
-                self.bind_tree()
-            except Exception, e:
-                tkMessageBox.showinfo(title='提示', message=e.message)
-            else:
-                pass
+                    pass
 
     def restore_file(self):
-        '''
+        u"""
         恢复已经预删除的任务到原始位置，如果有新文件存在，则不恢复。
-        :param parent: LISTVIEW选择的JOB名
-        :param job_name: LISTVIEW选择的任务名
         :return:
-        '''
+        """
         if self.get_parent_and_job_name():
             parent, job_name = self.get_parent_and_job_name()
             try:
-                c = ManageJob.restore_deleted_job(parent, job_name)
+                c = self.mj.restore_deleted_job(parent, job_name)
                 if c == 'exists':
-                    tkMessageBox.showinfo(title='警告', message='有新的任务配置文件存在了，停止恢复')
+                    tkMessageBox.showinfo(title=u'警告', message=u'有新的任务配置文件存在了，停止恢复')
                     self.clear_window.focus_force()
                 else:
                     self.bind_tree()
             except Exception, e:
-                tkMessageBox.showinfo(title='提示', message=e.message)
+                tkMessageBox.showinfo(title=u'提示', message=e.message)
             else:
                 pass
 
     def get_parent_and_job_name(self):
-        '''
+        u"""
         获取所选择的节点的名称和父节点名称
         :return:
-        '''
+        """
         if self.tree.selection():
             item = self.tree.selection()
             parent = self.tree.item(item, "values")[0].decode('gbk')
@@ -154,17 +139,17 @@ class ClearFiles(Toplevel):
             pass
 
     def open_restore_job_menu(self, event):
-        '''
+        u"""
         弹出右键菜单
         :param event:
         :return:
-        '''
+        """
         self.context_menu.post(event.x_root, event.y_root)
 
     def job_cancel(self):
-        '''
+        u"""
         退出窗口
         :return:
-        '''
+        """
         self.clear_window.destroy()
         self.parent.show()
