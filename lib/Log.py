@@ -1,16 +1,29 @@
 # --coding:utf-8--
 
-import os
-import sys
+import logging
+from ManageJob import *
+import time
 
 
-class load_log():
-    def __init__(self, log_name):
-        self.log = open(log_name, 'r')
+class Log:
+    def __init__(self):
+        self.logger_info = None
+        self.gen_logger()
 
-    def read(self, position):
-        log_content = []
-        for log in self.log.readlines():
-            log_content.append()
-            return log_content[position:]
-        self.log.close()
+    def gen_logger(self):
+        self.logger_info = logging.getLogger("Data_Collect_Log")
+        log_info_file = os.path.join(log_root_path, time.strftime('%Y%m%d', time.localtime()) + '.log')
+        fh = logging.FileHandler(log_info_file)
+
+        fmt = logging.Formatter("[%(asctime)s]-%(levelname)s:%(message)s")
+
+        fh.setFormatter(fmt)
+        fh.setLevel(logging.INFO)
+
+        self.logger_info.addHandler(fh)
+        self.logger_info.setLevel(logging.INFO)
+
+
+if __name__ == '__main__':
+    log = Log()
+    log.save('error', '1')

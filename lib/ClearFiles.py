@@ -3,13 +3,14 @@ __author__ = 'FlyBear'
 __date__ = '2018-01-10'
 
 import ttk
-
 from ModifyJob import *
 
 
 class ClearFiles(Toplevel):
     def __init__(self, parent_window):
         self.clear_window = None
+        Log()
+        self.log = logging.getLogger("Data_Collect_Log")
         self.context_menu = None
         self.parent = parent_window
         self.root_path = os.path.abspath(
@@ -22,8 +23,8 @@ class ClearFiles(Toplevel):
 
         self.clear_window.update_idletasks()
         self.clear_window.deiconify()
-        x, y = self.center(450, 350)
-        self.clear_window.geometry('%dx%d+%d+%d' % (450, 350, x, y))
+        x, y = self.center(600, 480)
+        self.clear_window.geometry('%dx%d+%d+%d' % (600, 480, x, y))
         self.clear_window.deiconify()
         self.clear_window.focus_force()
         self.mj = ManageJob()
@@ -36,21 +37,21 @@ class ClearFiles(Toplevel):
         self.clear_window.resizable(width=False, height=False)
 
         label = Label(self.clear_window, text=u'已经删除任务列表')
-        label.grid(row=0, column=0, columnspan=3)
+        label.grid(row=0, column=0, columnspan=3, sticky='w')
 
         self.tree = ttk.Treeview(self.clear_window, column=('JOB', u'任务'), show="headings")
         self.tree.column('JOB', width=100, anchor='w')
         self.tree.column(u'任务', width=200, anchor='w')
-        self.tree.configure(height=15)
+        self.tree.configure(height=22)
         self.tree.heading('JOB', text='JOB')
         self.tree.heading(u'任务', text=u'任务')
         self.tree.bind("<Button-3>", self.open_restore_job_menu)
         ysb = ttk.Scrollbar(self.clear_window, orient='vertical', command=self.tree.yview)
         xsb = ttk.Scrollbar(self.clear_window, orient='horizontal', command=self.tree.xview)
 
-        self.tree.grid(row=0, column=0, rowspan=9, sticky=N + S + W + E)
-        ysb.grid(row=0, column=1, rowspan=11, sticky=N + S)
-        xsb.grid(row=12, column=0, rowspan=11, sticky=W + E)
+        self.tree.grid(row=1, column=0, rowspan=9, sticky=N + S + W + E)
+        ysb.grid(row=1, column=1, rowspan=11, sticky=N + S)
+        xsb.grid(row=13, column=0, rowspan=11, sticky=W + E)
 
         self.context_menu = Menu(self.tree)
         self.context_menu.add_command(label=u'刷新列表', command=self.bind_tree)
@@ -59,15 +60,15 @@ class ClearFiles(Toplevel):
 
         button_delete_all = Button(self.clear_window)
         button_delete_all.configure(text=u'全部删除', command=lambda: self.delete_jobs('all'))
-        button_delete_all.grid(row=0, column=2, padx=30, sticky='w')
+        button_delete_all.grid(row=1, column=2, padx=100, sticky='w')
 
         button_delete = Button(self.clear_window)
         button_delete.configure(text=u'彻底删除', command=lambda: self.delete_jobs('selected'))
-        button_delete.grid(row=1, column=2, padx=30, sticky='w')
+        button_delete.grid(row=2, column=2, padx=100, sticky='w')
 
         button_cancel = Button(self.clear_window)
         button_cancel.configure(text=u'返回系统', command=self.job_cancel)
-        button_cancel.grid(row=2, column=2, padx=30, sticky='w')
+        button_cancel.grid(row=3, column=2, padx=100, sticky='w')
         # self.bind_deleted_jobs(root_node)
         self.bind_tree()
         self.parent.hide()
@@ -86,31 +87,33 @@ class ClearFiles(Toplevel):
                         job_name = os.path.splitext(job_name)[0]
                         self.tree.insert('', 0, values=(parent.decode('gbk'), job_name.decode('gbk')))
         except Exception, e:
+            self.log.error(u'获取预删除任务列表失败_' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def delete_jobs(self, content):
         u"""
         彻底删除已经预删除的文件
         :param content: content确认按下的是全部删除按钮还是删除按钮
-        :parm parent: LISTVIEW选择的JOB名
-        :parm job_name: LISTVIEW选择的任务名
+        :parm parent: ListView选择的JOB名
+        :parm job_name: ListView选择的任务名
         :return:
         """
         if content == 'all':
             for item in self.mj.scan_all_deleted_job(self.root_path):
                 os.remove(item.decode('gbk'))
+                self.log.info(item + u'彻底删除成功')
             self.bind_tree()
             self.clear_window.focus_force()
-        else:
+        elif content == 'selected':
             if self.get_parent_and_job_name():
                 parent, job_name = self.get_parent_and_job_name()
                 try:
                     self.mj.clear_deleted_jobs(parent, job_name)
+                    self.log.info(' JOB' + parent + '_' + job_name + u'彻底删除成功')
                     self.bind_tree()
                 except Exception, e:
+                    self.log.error(parent + '_' + job_name + u',彻底删除失败' + e.message.decode('gbk'))
                     tkMessageBox.showinfo(title=u'提示', message=e.message)
-                else:
-                    pass
 
     def restore_file(self):
         u"""
@@ -126,7 +129,9 @@ class ClearFiles(Toplevel):
                     self.clear_window.focus_force()
                 else:
                     self.bind_tree()
+                    self.log.info(parent + '_' + job_name + u'恢复成功')
             except Exception, e:
+                self.log.error(parent + '_' + job_name + u'_恢复失败' + e.message.decode('gbk'))
                 tkMessageBox.showinfo(title=u'提示', message=e.message)
             else:
                 pass

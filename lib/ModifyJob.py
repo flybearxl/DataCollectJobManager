@@ -5,7 +5,7 @@ __date__ = '2018-01-01'
 from ScrolledText import ScrolledText
 from Tkinter import *
 from ttk import Combobox
-
+from Log import *
 from ManageJob import *
 
 rn = '\r\n'
@@ -14,6 +14,8 @@ rn = '\r\n'
 class JobUI(Toplevel):  # 编辑任务窗口
     def __init__(self, parent_window, job, parent_name, job_name):
         self.edit_job = Toplevel()
+        Log()
+        self.log = logging.getLogger("Data_Collect_Log")
         self.parent = parent_window
         self.edit_job.protocol("WM_DELETE_WINDOW", self.job_cancel)
         self.job_file_ext = '.dat'
@@ -112,7 +114,8 @@ class JobUI(Toplevel):  # 编辑任务窗口
                 self.job_script_content = open(script_path).read()
                 self.parent.hide()
             except Exception, e:
-                tkMessageBox.showwarning(title=u'警告', message=e.message)
+                self.log.error(parent + '_' + job_name + u'读取失败' + e.message.decode('gbk'))
+                tkMessageBox.showinfo(title=u'警告', message=e.message)
                 self.edit_job.destroy()
             self.set_text_value(parent)
             self.combobox_Job_name.configure(state='disabled')
@@ -127,7 +130,6 @@ class JobUI(Toplevel):  # 编辑任务窗口
             self.parent.hide()
         elif job == 4:
             file_path = ManageJob.get_conf_path(parent, job_name)
-            # self.txt_text_job.set(parent)
             self.combobox_Job_name.configure(state='disabled')
             try:
                 self.job_conf_content = open(file_path).readlines()
@@ -135,6 +137,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
                 self.set_text_value(parent)
                 self.parent.hide()
             except Exception, e:
+                self.log.error(e.message.decode('gbk'))
                 tkMessageBox.showwarning(title=u'警告', message=e.message)
 
     def check_entry_is_empty(self):
@@ -152,9 +155,10 @@ class JobUI(Toplevel):  # 编辑任务窗口
                 if ManageJob.check_job_file_exists(job_file):
                     self.save_job_conf_file(job_file, job_script)
             else:
-                tkMessageBox.showerror('Error', u'JOB和任务名称不能为空')
+                tkMessageBox.showinfo(title='Error', message=u'JOB和任务名称不能为空')
                 self.edit_job.focus_force()
         except Exception, e:
+            self.log.error(e.message.decode('gbk'))
             tkMessageBox.showerror('Error', e.message)
 
     def save_job_conf_file(self, job_file, job_script):  # 保存任务配置文件
@@ -162,7 +166,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
             # print '即将写入脚本配置文件：', job_file
             # print '即将写入脚本文件：', job_script
             job_conf_file = open(job_file, 'w')
-            job_conf_file.writelines(u'任务名称:  ' + (self.entry_text_name.get() if self.combobox_Job_name.get() else ''))
+            job_conf_file.writelines(u'任务名称:  ' + self.entry_text_name.get())
             job_conf_file.writelines(
                 rn + u'任务描述:  ' + (self.entry_text_desc.get() if self.entry_text_desc.get() else ''))
             job_conf_file.writelines(
@@ -179,10 +183,10 @@ class JobUI(Toplevel):  # 编辑任务窗口
             script_content.rstrip()
             script_file.writelines(script_content)
             script_file.close()
-            self.edit_job.destroy()
-            self.parent.show()
+            self.log.info('_' + self.entry_text_name.get().decode('gbk') + u'_保存成功')
+            self.job_cancel()
         except Exception, e:
-            return e.message
+            self.log.error('JOB_' + self.entry_text_name.get().decode('gbk') + u'_创建失败' + e.message.decode('gbk'))
 
     def set_text_value(self, parent):  #
         u"""
@@ -201,9 +205,7 @@ class JobUI(Toplevel):  # 编辑任务窗口
             self.entry_text_script.insert(0.0, self.job_script_content.decode('gbk'))
         except Exception, e:
             print e.message
-
-    def center(self):
-        pass
+            self.log.error(e.message.decode('gbk'))
 
     def job_cancel(self):
         self.edit_job.destroy()

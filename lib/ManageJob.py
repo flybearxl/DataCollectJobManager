@@ -1,6 +1,5 @@
 # --coding:utf-8---
 import os
-import time
 import shutil
 import subprocess
 import tkMessageBox
@@ -11,6 +10,11 @@ job_root_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir)) + '\Job'
 deleted_root_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir)) + '\Predelete'
+log_root_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir)) + '\Log'
+info = 1
+error = 2
+rn = '\r\n'
 file_list = []
 
 
@@ -33,13 +37,18 @@ class ManageJob:
                              # stderr=subprocess.STDOUT,
                              creationflags=subprocess.CREATE_NEW_CONSOLE)
 
-            return time.strftime('%Y-%m-%d %H:%M:%S',
-                                 time.localtime()) + ': JOB:  ' + script_path[script_path.find('Job\\'):].replace(
+            return script_path[script_path.find('Job\\'):].replace(
                 'Script\\',
                 '').replace(
                 '\\',
-                '->') + \
-                   u'>>>>任务已开始运行，请在新开窗口中查看任务进度，注意不要重复提交，否则可能造成数据错误！' + '\r\n'
+                '->') + u'>>>>任务已开始运行，请在新开窗口中查看任务进度，注意不要重复提交，否则可能造成数据错误！'
+            # return time.strftime('%Y-%m-%d %H:%M:%S',
+            #                      time.localtime()) + ': JOB:  ' + script_path[script_path.find('Job\\'):].replace(
+            #     'Script\\',
+            #     '').replace(
+            #     '\\',
+            #     '->') + \
+            #     u'>>>>任务已开始运行，请在新开窗口中查看任务进度，注意不要重复提交，否则可能造成数据错误！' + '\r\n'
         except Exception, e:
             return e.message
 
@@ -58,11 +67,9 @@ class ManageJob:
             pre_delete_script = self.get_pre_delete_script_path(parent, job_name)
             shutil.move(job_file, pre_delete_file)  # 此处仅仅是将文件移走,并没有完全删除
             shutil.move(job_script_file, pre_delete_script)
-            return time.strftime('%Y-%m-%d %H:%M:%S',
-                                 time.localtime()) + ': JOB:  ' + job_name + u'>>>>>>>>删除成功'
+            return ': JOB:  ' + parent + '_' + job_name + u'>>>>>>>>删除成功'
         except Exception, e:
-            return time.strftime('%Y-%m-%d %H:%M:%S',
-                                 time.localtime()) + ': JOB:  ' + job_name + e.message
+            return ': JOB:  ' + job_name + e.message
 
     @staticmethod
     def get_job_text_content(text_content):

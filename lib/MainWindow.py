@@ -6,8 +6,10 @@ import threading
 import tkFileDialog
 from ClearFiles import *
 from VerifyJob import *
+from Log import *
 
 rn = '\r\n'
+f_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
 
 
 class Application(Frame):  # 主窗口
@@ -16,6 +18,8 @@ class Application(Frame):  # 主窗口
         self.master.title(u'财政数据采集还原助手')
         self.master.resizable(width=False, height=False)
         self.master.iconbitmap('ico.ico')
+        Log()
+        self.log = logging.getLogger("Data_Collect_Log")
         self.hide()
         self.scrolled_execute_job_log = None
         self.scrolled_text_job_conf_info = None
@@ -27,9 +31,7 @@ class Application(Frame):  # 主窗口
         self.parent = None  # 当前选择任务的父节点名字——-JOB名字
         self.job_name = None  # 任务名称
         self.root_node = None  # 根节点
-
         self.init_ui()
-
         self.master.focus_force()
         self.bind_job_tree(self.root_node)
 
@@ -42,8 +44,8 @@ class Application(Frame):  # 主窗口
 
         # 任务菜单
         file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label=u"新建JOB", command=lambda: self.new_job('New'))
-        file_menu.add_command(label=u"打开JOB", command=self.open_job)
+        file_menu.add_command(label=u"新建任务", command=lambda: self.new_job('New'))
+        file_menu.add_command(label=u"打开任务", command=self.open_job)
         file_menu.add_separator()  # 分割线
         file_menu.add_command(label=u"退出助手", command=self.master.quit)
         menu_bar.add_cascade(label=u"任务", menu=file_menu)
@@ -151,7 +153,7 @@ class Application(Frame):  # 主窗口
             job_list = {}
             self.job = []
             for job in os.listdir(job_root_path):
-                # 构建路径
+                # 获取JOB目录
                 self.job.append(job.decode('gbk'))
                 job_list[job] = self.tree.insert(root_node, 'end', text=job.decode('gbk'), open=False)
             for task in job_list:
@@ -159,8 +161,9 @@ class Application(Frame):  # 主窗口
                 job_file_list = os.listdir(conf_path)
                 for item in job_file_list:
                     self.tree.insert(job_list[task], 'end', text=item.decode('gbk')[:-4], open=False)
-            self.job.append(self.tree.item(self.root_node, 'text'))
+            # self.job.append(self.tree.item(self.root_node, 'text')) root节点名称
         except Exception, e:
+            self.log.error(u'获取任务列表失败,' + e.message.decode('gbk'))
             self.scrolled_execute_job_log.insert(END, e.message)
 
     def refresh_tree(self):
@@ -196,6 +199,8 @@ class Application(Frame):  # 主窗口
         if choice == 'New':  # 第一个参数0表示新建菜单进入
             JobUI(self, 0, 0, 0, )
         if choice == 'Context':
+            for item in self.job:
+                print item
             parent, job_name = self.get_parent_and_job_name()
             if job_name in self.job:
                 job = 1
@@ -215,6 +220,7 @@ class Application(Frame):  # 主窗口
             else:
                 return
         except Exception, e:
+            self.log.error(u'打开配置文件失败,' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def edit_job(self, event):
@@ -230,7 +236,7 @@ class Application(Frame):  # 主窗口
 
     def delete_job(self):
         u"""
-        删除已经存在任务，尚未完成,需要修改ManagerJOb中相关代码
+        删除已经存在任务
         :return:
         """
         try:
@@ -239,13 +245,15 @@ class Application(Frame):  # 主窗口
             # self.scrolled_execute_job_log.insert(END, parent)
             # self.scrolled_execute_job_log.insert(END, job_name)
             c = self.mj.logical_delete_job(parent, job_name)
-            self.scrolled_execute_job_log.insert(END, c + rn)
+            self.log.info(c)
+            self.scrolled_execute_job_log.insert(END, f_time + c + rn)
             self.refresh_tree()
             self.scrolled_execute_job_log.see(END)
             self.scrolled_execute_job_log.configure(state=DISABLED)
         except Exception, e:
             self.scrolled_execute_job_log.configure(state=NORMAL)
-            self.scrolled_execute_job_log.insert(END, 'Error==>' + job_name + e.message + rn)
+            self.log.error(job_name.decode('gbk') + '_' + e.message.decode('gbk'))
+            self.scrolled_execute_job_log.insert(END, f_time + 'Error:' + job_name + e.message)
             self.scrolled_execute_job_log.configure(state=DISABLED)
 
     @staticmethod
@@ -254,7 +262,7 @@ class Application(Frame):  # 主窗口
         关于菜单
         :return:
         """
-        tkMessageBox.showinfo(message=u'财政数据采集助手 V0.01 作者：FLYBEAR', title=u'关于')
+        tkMessageBox.showinfo(message=u'财政数据采集助手 V0.01 作者：FlyBear', title=u'关于')
         pass
 
     def clear_deleted_jobs(self):
@@ -293,7 +301,8 @@ class Application(Frame):  # 主窗口
             if 'Non' in e.message:
                 pass
             else:
-                self.scrolled_execute_job_log.insert(END, rn + e.message)
+                self.log.error(parent + '_' + job_name + u'_获取配置信息失败,' + e.message.decode('gbk'))
+                self.scrolled_execute_job_log.insert(END, e.message)
                 self.scrolled_text_job_conf_info.see(END)
             self.scrolled_execute_job_log.configure(state=DISABLED)
 
@@ -314,8 +323,8 @@ class Application(Frame):  # 主窗口
                 self.scrolled_execute_job_log.configure(state=NORMAL)
                 self.scrolled_execute_job_log.insert(END, u'请先选择需要执行的任务')
                 self.scrolled_execute_job_log.configure(state=DISABLED)
-
         except Exception, e:
+            self.log.error(parent + '_' + job_name + u'执行失败' + e.message.decode('gbk'))
             self.scrolled_execute_job_log.insert(0.0, e.message)
 
     def final_execute_cmd(self, script_path):
@@ -327,12 +336,14 @@ class Application(Frame):  # 主窗口
         try:
             exec_result = ManageJob.execute_job(script_path)
             self.scrolled_execute_job_log.configure(state=NORMAL)
-            self.scrolled_execute_job_log.insert(END, exec_result)
+            self.log.info(exec_result.decode('gbk'))
+            self.scrolled_execute_job_log.insert(END, f_time + exec_result)
             self.scrolled_execute_job_log.see(END)
             self.scrolled_execute_job_log.configure(state=DISABLED)
         except Exception, e:
             self.scrolled_execute_job_log.configure(state=NORMAL)
-            self.scrolled_execute_job_log.insert(END, u'出错了' + e.message + rn)
+            self.log.error(script_path + u'_执行失败' + e.message.decode('gbk'))
+            self.scrolled_execute_job_log.insert(END, u'出错了' + e.message.decode('gbk'))
             self.scrolled_execute_job_log.see(END)
             self.scrolled_execute_job_log.configure(state=DISABLED)
 

@@ -4,12 +4,14 @@ __date__ = '2018-01-01'
 
 import ttk
 from ModifyJob import *
-from ManageJob import *
+from Log import *
 
 
 class VerifyIntegrity(Toplevel):
     def __init__(self, parent_window):
         self.verify = None
+        Log()
+        self.log = logging.getLogger("Data_Collect_Log")
         self.tree_frame = None
         self.text_label = StringVar()
         self.tree = None
@@ -18,8 +20,8 @@ class VerifyIntegrity(Toplevel):
         self.init_ui()
         self.verify.update_idletasks()
         self.verify.deiconify()
-        x, y = self.center(600, 520)
-        self.verify.geometry('%dx%d+%d+%d' % (600, 520, x, y))
+        x, y = self.center(600, 510)
+        self.verify.geometry('%dx%d+%d+%d' % (600, 510, x, y))
         self.verify.deiconify()
 
         self.verify.parent = parent_window
@@ -45,7 +47,7 @@ class VerifyIntegrity(Toplevel):
         self.tree.column('JOB', width=100, anchor='center')
         self.tree.column(u'任务', width=150, anchor='center')
         self.tree.column(u'完整性', width=150, anchor='center')
-        self.tree.configure(height=15)
+        self.tree.configure(height=22)
         self.tree.heading('#0', text=u'任务清单', anchor='w')
         self.tree.heading('JOB', text='JOB')
         self.tree.heading(u'任务', text=u'任务')
@@ -64,10 +66,10 @@ class VerifyIntegrity(Toplevel):
         ysb.grid(row=0, column=4, rowspan=11, sticky=N + S)
         xsb.grid(row=12, column=0, rowspan=11, sticky=W + E)
         button_test = Button(self.verify, text=u'执行检测', command=self.verify_job)
-        button_test.grid(row=1, column=5, ipadx=20, padx=60, sticky='n')
+        button_test.grid(row=1, column=5, ipadx=5, padx=60, sticky='n')
 
         button_cancel = Button(self.verify, text=u'返回系统', command=self.job_cancel)
-        button_cancel.grid(row=1, column=5, ipadx=20, pady=50, sticky='n')
+        button_cancel.grid(row=1, column=5, ipadx=5, pady=50, sticky='n')
         self.bind_error_tree()
 
     def bind_error_tree(self):
@@ -91,8 +93,9 @@ class VerifyIntegrity(Toplevel):
                             self.tree.insert('', 0, values=(parent.decode('gbk'), job_name.decode('gbk'), u'脚本文件缺失'))
             if not self.tree.get_children():
                 self.tree.insert('', 0, values=('', u'恭喜！没有任务配置损坏', ''))
-
+                self.log.info(u'扫描任务配置完整性完成，没有发现受损任务')
         except Exception, e:
+            self.log.error(u'扫描失败' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def open_context_menu(self, event):
@@ -104,6 +107,7 @@ class VerifyIntegrity(Toplevel):
         try:
             self.menu.post(event.x_root, event.y_root)
         except Exception, e:
+            self.log.error(u'无法弹出快捷菜单_' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def verify_job(self):
@@ -132,6 +136,7 @@ class VerifyIntegrity(Toplevel):
             else:
                 pass
         except Exception, e:
+            self.log.error(u'无法编辑选中任务_' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def delete_job(self):
@@ -143,10 +148,12 @@ class VerifyIntegrity(Toplevel):
             if self.get_parent_job_name():
                 parent, job_name = self.get_parent_job_name()
                 self.mj.logical_delete_job(parent, job_name)
+                self.log.info(parent + '_' + job_name + u'删除成功')
                 self.bind_error_tree()
             else:
                 pass
         except Exception, e:
+            self.log.error(parent + '_' + job_name + u'_删除失败' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def get_parent_job_name(self):
@@ -163,6 +170,7 @@ class VerifyIntegrity(Toplevel):
             else:
                 pass
         except Exception, e:
+            self.log.error(u'获取任务节点名称失败_' + e.message.decode('gbk'))
             tkMessageBox.showinfo(title=u'警告', message=e.message)
 
     def hide(self):
